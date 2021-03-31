@@ -9,17 +9,19 @@ import UIKit
 
 class DetaiIViewController: UIViewController {
     
-    var selectedItem: ItemData? {
-        didSet {
-            print(selectedItem?.name)
-        }
-    }
+    @IBOutlet weak var itemName: UILabel!
+    @IBOutlet weak var dateLabel: UILabel!
+    @IBOutlet weak var timeLabel: UILabel!
+    @IBOutlet weak var descriptionText: UITextView!
+    
+    var selectedItem: ItemData? 
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        dateLabel.text = selectedItem?.dateStart
+        timeLabel.text = "\(selectedItem?.timeStart ?? "0.0") - \(selectedItem?.timeFinish ?? "0.0")"
+        descriptionText.text = selectedItem?.itemDescription
+        itemName.text = selectedItem?.name
     }
-    
-
 }

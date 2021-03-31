@@ -6,16 +6,26 @@
 //
 
 import Foundation
+import RealmSwift
 
 protocol NetworkManagerDelegate {
-    func didUpdateItem(_ networkManager: NetworkManager, item: [ItemModel])
+    func didUpdateItem(_ networkManager: NetworkManager, item: ItemModel)
     func didFailWithError(error: Error)
 }
 
 struct NetworkManager {
     
     var delegate: NetworkManagerDelegate?
+    let convertDate = ItemModel()
 
+    func performRequest() {
+        if let safeData = readLocalFile(forName: "data") {
+            if let item = parseJSON(safeData) {
+                delegate?.didUpdateItem(self, item: item)
+            }
+        }
+    }
+    
     func readLocalFile(forName name: String) -> Data? {
         do {
             if let bundlePath = Bundle.main.path(forResource: name, ofType: "json"),
@@ -28,38 +38,46 @@ struct NetworkManager {
         return nil
     }
     
-    func performRequest() {
-        if let safeData = readLocalFile(forName: "data") {
-            if let item = parseJSON(safeData) {
-                delegate?.didUpdateItem(self, item: item)
-            }
-        }
-    }
-    
-    func parseJSON(_ jsonData: Data) -> [ItemModel]? {
+    func parseJSON(_ jsonData: Data) -> ItemModel? {
         let decoder = JSONDecoder()
         do {
             let decodedData = try decoder.decode([ItemData].self, from: jsonData)
-                        
-            let item = ItemModel()
-            var itemArray: [ItemModel] = []
             
+            var itemsArray = ItemModel()
             for data in decodedData.enumerated() {
-                let id = decodedData[data.offset].id
-                let dateStart = item.timestampToDate(time: Double(decodedData[data.offset].dateStart) ?? 0.0)
-                let dateFinish = item.timestampToDate(time: Double(decodedData[data.offset].dateFinish) ?? 0.0)
-                let name = decodedData[data.offset].name
-                let description = decodedData[data.offset].itemDescription
-
-                itemArray.append(ItemModel(itemId: id, dateStart: dateStart, dateFinish: dateFinish, itemName: name, itemDescription: description))
+                itemsArray.itemId = decodedData[data.offset].id
+                itemsArray.dateStart = convertDate.timestampToDate(time: Double(decodedData[data.offset].dateStart) ?? 0.0)
+                itemsArray.dateFinish = convertDate.timestampToDate(time: Double(decodedData[data.offset].dateFinish) ?? 0.0)
+                itemsArray.itemName = decodedData[data.offset].name
+                itemsArray.itemDescription = decodedData[data.offset].itemDescription
+                
+                insertOrUpdate(itemsArray)
             }
             
-            return itemArray
-            
+            return itemsArray
         } catch {
             delegate?.didFailWithError(error: error)
             return nil
         }
     }
     
+    func insertOrUpdate(_ items: ItemModel) {
+        let realm = try! Realm()
+        try! realm.write({
+            let itemRealm = ItemData()
+            
+            itemRealm.id = items.itemId
+            
+            itemRealm.dateStart = convertDate.formatDate(items.dateStart)
+            itemRealm.timeStart = convertDate.formatDate(items.dateStart, choice: "Time")
+            
+            itemRealm.dateFinish = convertDate.formatDate(items.dateFinish)
+            itemRealm.timeFinish = convertDate.formatDate(items.dateFinish, choice: "Time")
+            
+            itemRealm.name = items.itemName
+            itemRealm.itemDescription = items.itemDescription
+
+            realm.add(itemRealm)
+            })
+    }
 }

@@ -21,7 +21,6 @@
 		84BDE988260FC7D4001D02DA /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = 84BDE987260FC7D4001D02DA /* data.json */; };
 		84BDE98C260FCBC8001D02DA /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BDE98B260FCBC8001D02DA /* NetworkManager.swift */; };
 		84BDE98F2610604F001D02DA /* ItemModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BDE98E2610604F001D02DA /* ItemModel.swift */; };
-		84BDE9932610D165001D02DA /* DateData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BDE9922610D165001D02DA /* DateData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,7 +41,6 @@
 		84BDE987260FC7D4001D02DA /* data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data.json; sourceTree = "<group>"; };
 		84BDE98B260FCBC8001D02DA /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		84BDE98E2610604F001D02DA /* ItemModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemModel.swift; sourceTree = "<group>"; };
-		84BDE9922610D165001D02DA /* DateData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateData.swift; sourceTree = "<group>"; };
 		E8A1FF3426CCB5BF7AB55A52 /* Pods-MobileInternship.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobileInternship.debug.xcconfig"; path = "Target Support Files/Pods-MobileInternship/Pods-MobileInternship.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -131,7 +129,6 @@
 		84BDE960260F5812001D02DA /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				84BDE9922610D165001D02DA /* DateData.swift */,
 				84BDE961260F5832001D02DA /* ItemData.swift */,
 				84BDE98E2610604F001D02DA /* ItemModel.swift */,
 				84BDE98B260FCBC8001D02DA /* NetworkManager.swift */,
@@ -264,7 +261,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				84BDE98C260FCBC8001D02DA /* NetworkManager.swift in Sources */,
-				84BDE9932610D165001D02DA /* DateData.swift in Sources */,
 				84BDE95B260F2247001D02DA /* ItemCell.swift in Sources */,
 				84BDE962260F5833001D02DA /* ItemData.swift in Sources */,
 				84BDE93F260F0AC1001D02DA /* ViewController.swift in Sources */,

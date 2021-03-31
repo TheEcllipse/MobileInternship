@@ -25,4 +25,14 @@ struct ItemModel {
         return dateString
     }
     
+    func formatDate(_ string: String, choice: String = "Date") -> String {
+        let explodedDateStart = string.components(separatedBy: " ")
+        switch choice {
+        case "Time":
+            return explodedDateStart[1]
+        default:
+            return explodedDateStart[0]
+        }
+    }
+    
 }
