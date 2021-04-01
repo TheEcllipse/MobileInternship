@@ -16,12 +16,9 @@ class ViewController: UIViewController {
     
     let realm = try! Realm()
     var networkManager = NetworkManager()
-
     var todoItems: Results<ItemData>?
     var selectedDate: String = ""
-    
-    let firstHoursArray: [Int] = Array(0...23)
-    let secondHoursArray: [Int] = Array(1...24)
+    var savedIndexPath = IndexPath()
     
     fileprivate lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -36,18 +33,18 @@ class ViewController: UIViewController {
         tableView.delegate = self
         networkManager.delegate = self
         
-        tableView.register(UINib(nibName: "ItemCell", bundle: nil), forCellReuseIdentifier: "ReusableCell")
+        overrideUserInterfaceStyle = .light
         calendar.appearance.todayColor = UIColor.systemBlue
-        
+        tableView.register(UINib(nibName: "ItemCell", bundle: nil), forCellReuseIdentifier: "ReusableCell")
         selectedDate = dateFormatter.string(from: Date())
-
+        
         clearList()
         networkManager.performRequest()
         loadItems()
     }
     
     func loadItems() {
-        todoItems = realm.objects(ItemData.self).filter("dateStart == %@", selectedDate)
+        todoItems = realm.objects(ItemData.self).filter("dateStart == %@", selectedDate).sorted(byKeyPath: "timeStart", ascending: false)
         tableView.reloadData()
     }
     
@@ -58,61 +55,93 @@ class ViewController: UIViewController {
                 realm.delete(result)
             }
         } catch {
-            print("Ошибка удаления: \(error)")
+            print("Ошибка удаления из базы данных: \(error)")
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destinationVC = segue.destination as! DetaiIViewController
+        
+        if let indexPath = tableView.indexPathForSelectedRow {
+            if todoItems?.count != 0 {
+                var index = 1
+                while index <= todoItems!.count {
+                    let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+                    if String(indexPath.row) == explodedTimeStart[0] {
+                        destinationVC.selectedItem = todoItems?[index - 1]
+                        break
+                    }
+                    index += 1
+                }
+            }
         }
     }
 }
 
-//MARK: - TableView Datasource Methods
+//MARK: - TableView's Methods
 
-extension ViewController: UITableViewDataSource {
+extension ViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        return todoItems?.count ?? 24
         return 24
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReusableCell", for: indexPath) as! ItemCell
-        let hour = "\(firstHoursArray[indexPath.row]).00-\(secondHoursArray[indexPath.row]).00"
         
+        let hoursArray = Array(0...23)
+        let hour = "\(hoursArray[indexPath.row]):00-\(hoursArray[indexPath.row] + 1):00"
         cell.timeLabel.text = String(hour)
         
+        cell.itemLabel?.text = "Нет дел"
         
         if todoItems?.count != 0 {
-            let newIndex = 24 + (todoItems!.count - 24)
-            print(newIndex)
-            if let item = todoItems?[newIndex - 1] {
-                cell.itemLabel?.text = item.name
-            } else {
-                cell.itemLabel?.text = "Нет дел"
+            var index = 1
+            while index <= todoItems!.count {
+                let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+                if String(indexPath.row) == explodedTimeStart[0] {
+                    savedIndexPath = indexPath
+                    cell.itemLabel?.text = todoItems![index-1].name
+                    cell.timeLabel.text = "\(todoItems![index-1].timeStart)-\(todoItems![index-1].timeFinish)"
+                }
+                index += 1
             }
         }
-    
+        
+//        Оставлю, на всякий случай. Выводит дела в первых строчках.
+//        if let item = todoItems?[safe: indexPath.row] {
+//            cell.itemLabel?.text = item.name
+//            cell.timeLabel.text = "\(item.timeStart)-\(item.timeFinish)"
+//        } else {
+//            cell.itemLabel?.text = "Нет дел"
+//        }
+
         return cell
     }
     
-}
-
-//MARK: - TableView Manipulation Methods
-
-extension ViewController: UITableViewDelegate {
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: "ToDetail", sender: ViewController.self)
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let destinationVC = segue.destination as! DetaiIViewController
-        if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedItem = todoItems?[indexPath.row]
+        
+        if todoItems?.count != 0 {
+            var index = 1
+            while index <= todoItems!.count {
+                let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+                if String(indexPath.row) == explodedTimeStart[0] {
+                    performSegue(withIdentifier: "ToDetail", sender: ViewController.self)
+                    break
+                }
+                index += 1
+            }
         }
+        tableView.deselectRow(at: indexPath, animated: true)
+
+//        if (todoItems?[safe: indexPath.row]) != nil {
+//            performSegue(withIdentifier: "ToDetail", sender: ViewController.self)
+//        }
     }
+
 }
 
-
-//MARK: - Calendar Methods
+//MARK: - Calendar's Methods
 
 extension ViewController: FSCalendarDataSource, FSCalendarDelegate {
     func calendar(_ calendar: FSCalendar, didSelect date: Date, at monthPosition: FSCalendarMonthPosition) {
@@ -121,13 +150,22 @@ extension ViewController: FSCalendarDataSource, FSCalendarDelegate {
     }
 }
 
+//MARK: - Delegate's Methods
+
 extension ViewController: NetworkManagerDelegate {
-    
     func didUpdateItem(_ networkManager: NetworkManager, item: ItemModel) {
         // Здесь можно получить заполненую модельку. Пока не придумал зачем:)
     }
     
     func didFailWithError(error: Error) {
         print(error)
+    }
+}
+
+//MARK: - Чтобы индекс массива мог быты опционалом
+
+extension Collection {
+    subscript (safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
     }
 }

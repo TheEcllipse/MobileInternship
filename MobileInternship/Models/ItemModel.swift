@@ -19,7 +19,7 @@ struct ItemModel {
         let date = NSDate(timeIntervalSince1970: time)
         let formatter = DateFormatter()
         formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        formatter.dateFormat = "yyyy-MM-dd H:mm"
         let dateString = formatter.string(from: date as Date)
         
         return dateString
