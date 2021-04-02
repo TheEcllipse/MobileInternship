@@ -20,6 +20,7 @@ class DetaiIViewController: UIViewController {
         super.viewDidLoad()
         
         overrideUserInterfaceStyle = .light
+        
         dateLabel.text = selectedItem?.dateStart
         timeLabel.text = "\(selectedItem?.timeStart ?? "0.0") - \(selectedItem?.timeFinish ?? "0.0")"
         descriptionText.text = selectedItem?.itemDescription

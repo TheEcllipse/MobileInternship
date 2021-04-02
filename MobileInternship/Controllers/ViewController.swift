@@ -17,8 +17,8 @@ class ViewController: UIViewController {
     let realm = try! Realm()
     var networkManager = NetworkManager()
     var todoItems: Results<ItemData>?
+    var datesWithEvents: ItemData?
     var selectedDate: String = ""
-    var savedIndexPath = IndexPath()
     
     fileprivate lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -35,7 +35,7 @@ class ViewController: UIViewController {
         
         overrideUserInterfaceStyle = .light
         calendar.appearance.todayColor = UIColor.systemBlue
-        tableView.register(UINib(nibName: "ItemCell", bundle: nil), forCellReuseIdentifier: "ReusableCell")
+        tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         selectedDate = dateFormatter.string(from: Date())
         
         clearList()
@@ -44,7 +44,10 @@ class ViewController: UIViewController {
     }
     
     func loadItems() {
-        todoItems = realm.objects(ItemData.self).filter("dateStart == %@", selectedDate).sorted(byKeyPath: "timeStart", ascending: false)
+        todoItems = realm.objects(ItemData.self)
+            .filter("dateStart == %@", selectedDate)
+            .sorted(byKeyPath: "timeStart", ascending: false)
+        
         tableView.reloadData()
     }
     
@@ -63,19 +66,18 @@ class ViewController: UIViewController {
         let destinationVC = segue.destination as! DetaiIViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            if todoItems?.count != 0 {
-                var index = 1
-                while index <= todoItems!.count {
-                    let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
-                    if String(indexPath.row) == explodedTimeStart[0] {
-                        destinationVC.selectedItem = todoItems?[index - 1]
-                        break
-                    }
-                    index += 1
+            var index = 1
+            while index <= todoItems!.count {
+                let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+                if String(indexPath.row) == explodedTimeStart[0] {
+                    destinationVC.selectedItem = todoItems?[index - 1]
+                    break
                 }
+                index += 1
             }
         }
     }
+    
 }
 
 //MARK: - TableView's Methods
@@ -87,25 +89,21 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ReusableCell", for: indexPath) as! ItemCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath) as! ItemCell
         
         let hoursArray = Array(0...23)
         let hour = "\(hoursArray[indexPath.row]):00-\(hoursArray[indexPath.row] + 1):00"
         cell.timeLabel.text = String(hour)
-        
         cell.itemLabel?.text = "Нет дел"
         
-        if todoItems?.count != 0 {
-            var index = 1
-            while index <= todoItems!.count {
-                let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
-                if String(indexPath.row) == explodedTimeStart[0] {
-                    savedIndexPath = indexPath
-                    cell.itemLabel?.text = todoItems![index-1].name
-                    cell.timeLabel.text = "\(todoItems![index-1].timeStart)-\(todoItems![index-1].timeFinish)"
-                }
-                index += 1
+        var index = 1
+        while index <= todoItems!.count {
+            let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+            if String(indexPath.row) == explodedTimeStart[0] {
+                cell.itemLabel?.text = todoItems![index-1].name
+                cell.timeLabel.text = "\(todoItems![index-1].timeStart)-\(todoItems![index-1].timeFinish)"
             }
+            index += 1
         }
         
 //        Оставлю, на всякий случай. Выводит дела в первых строчках.
@@ -120,25 +118,17 @@ extension ViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        if todoItems?.count != 0 {
-            var index = 1
-            while index <= todoItems!.count {
-                let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
-                if String(indexPath.row) == explodedTimeStart[0] {
-                    performSegue(withIdentifier: "ToDetail", sender: ViewController.self)
-                    break
-                }
-                index += 1
+        var index = 1
+        while index <= todoItems!.count {
+            let explodedTimeStart = todoItems![index - 1].timeStart.components(separatedBy: ":")
+            if String(indexPath.row) == explodedTimeStart[0] {
+                performSegue(withIdentifier: K.detailSegue, sender: ViewController.self)
+                break
             }
+            index += 1
         }
         tableView.deselectRow(at: indexPath, animated: true)
-
-//        if (todoItems?[safe: indexPath.row]) != nil {
-//            performSegue(withIdentifier: "ToDetail", sender: ViewController.self)
-//        }
     }
-
 }
 
 //MARK: - Calendar's Methods
@@ -148,6 +138,21 @@ extension ViewController: FSCalendarDataSource, FSCalendarDelegate {
         selectedDate = self.dateFormatter.string(from: date)
         loadItems()
     }
+    
+    func calendar(_ calendar: FSCalendar, numberOfEventsFor date: Date) -> Int {
+        let dateString = self.dateFormatter.string(from: date)
+        
+        datesWithEvents = realm.objects(ItemData.self)
+            .filter("dateStart == %@", dateString)
+            .sorted(byKeyPath: "dateStart", ascending: false).first
+                
+        if dateString == datesWithEvents?.dateStart {
+            return 1
+        }
+
+        return 0
+    }
+    
 }
 
 //MARK: - Delegate's Methods
