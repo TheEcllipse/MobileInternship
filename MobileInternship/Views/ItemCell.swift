@@ -18,12 +18,5 @@ class ItemCell: UITableViewCell {
         super.awakeFromNib()
         
         timeBackground.layer.cornerRadius = timeBackground.frame.size.height / 6
-    }
-
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
-    
+    }    
 }

@@ -147,7 +147,6 @@ extension ViewController: FSCalendarDataSource, FSCalendarDelegate {
             .sorted(byKeyPath: "dateStart", ascending: false)
                 
         return datesWithEvents!.count
-
     }
     
 }
@@ -164,7 +163,7 @@ extension ViewController: NetworkManagerDelegate {
     }
 }
 
-//MARK: - Чтобы индекс массива мог быты опционалом
+//MARK: - Чтобы индекс массива мог быты опционалом. Для версии, где список отображается в верхних строчках.
 
 extension Collection {
     subscript (safe index: Index) -> Element? {
