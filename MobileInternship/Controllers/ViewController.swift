@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     let realm = try! Realm()
     var networkManager = NetworkManager()
     var todoItems: Results<ItemData>?
-    var datesWithEvents: ItemData?
+    var datesWithEvents: Results<ItemData>?
     var selectedDate: String = ""
     
     fileprivate lazy var dateFormatter: DateFormatter = {
@@ -144,13 +144,10 @@ extension ViewController: FSCalendarDataSource, FSCalendarDelegate {
         
         datesWithEvents = realm.objects(ItemData.self)
             .filter("dateStart == %@", dateString)
-            .sorted(byKeyPath: "dateStart", ascending: false).first
+            .sorted(byKeyPath: "dateStart", ascending: false)
                 
-        if dateString == datesWithEvents?.dateStart {
-            return 1
-        }
+        return datesWithEvents!.count
 
-        return 0
     }
     
 }
