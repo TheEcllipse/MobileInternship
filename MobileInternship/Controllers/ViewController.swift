@@ -20,7 +20,7 @@ class ViewController: UIViewController {
     var datesWithEvents: Results<ItemData>?
     var selectedDate: String = ""
     
-    fileprivate lazy var dateFormatter: DateFormatter = {
+    lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter

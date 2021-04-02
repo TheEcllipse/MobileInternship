@@ -13,11 +13,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        print(Realm.Configuration.defaultConfiguration.fileURL)
-//        let date = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: Date())!
-//        let itemModel = ItemModel()
-//        print(itemModel.timestampToDate(time: 1617044074))
-
         return true
     }
 
